@@ -23,7 +23,7 @@
   "homepage": "https://github.com/Swatinem/rust-cache#readme",
   "dependencies": {
     "@actions/buildjet-cache": "npm:github-actions.cache-buildjet@0.2.0",
-    "@actions/cache": "^4.0.0",
+    "@actions/cache": "^4.0.3",
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
     "@actions/glob": "^0.5.0",
@@ -38,5 +38,6 @@
   },
   "scripts": {
     "prepare": "ncc build --target es2020 -o dist/restore src/restore.ts && ncc build --target es2020 -o dist/save src/save.ts && linefix dist"
-  }
+  },
+  "packageManager": "pnpm@10.10.0+sha256.fa0f513aa8191764d2b6b432420788c270f07b4f999099b65bb2010eec702a30"
 }

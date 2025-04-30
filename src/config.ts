@@ -139,6 +139,10 @@ export class CacheConfig {
     }
     self.workspaces = workspaces;
 
+    function normalizePath(p: string) {
+      return p.startsWith(process.cwd() + path.sep) ? path.relative(process.cwd(), p) : p;
+    }
+
     let keyFiles = await globFiles(".cargo/config.toml\nrust-toolchain\nrust-toolchain.toml");
     const parsedKeyFiles = []; // keyFiles that are parsed, pre-processed and hashed
 
@@ -264,6 +268,8 @@ export class CacheConfig {
     for (const dir of cacheDirectories.trim().split(/\s+/).filter(Boolean)) {
       self.cachePaths.push(dir);
     }
+
+    self.cachePaths = self.cachePaths.map(normalizePath);
 
     const bins = await getCargoBins();
     self.cargoBins = Array.from(bins.values());

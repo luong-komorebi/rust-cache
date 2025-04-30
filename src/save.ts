@@ -1,9 +1,8 @@
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
 
 import { cleanBin, cleanGit, cleanRegistry, cleanTargetDir } from "./cleanup";
 import { CacheConfig, isCacheUpToDate } from "./config";
-import { getCacheProvider, reportError } from "./utils";
+import { getCacheProvider, reportError, normalizeCachePaths } from "./utils";
 
 process.on("uncaughtException", (e) => {
   core.error(e.message);
@@ -30,11 +29,6 @@ async function run() {
     const config = CacheConfig.fromState();
     config.printInfo(cacheProvider);
     core.info("");
-
-    // TODO: remove this once https://github.com/actions/toolkit/pull/553 lands
-    if (process.env["RUNNER_OS"] == "macOS") {
-      await macOsWorkaround();
-    }
 
     const allPackages = [];
     for (const workspace of config.workspaces) {
@@ -73,10 +67,8 @@ async function run() {
     }
 
     core.info(`... Saving cache ...`);
-    // Pass a copy of cachePaths to avoid mutating the original array as reported by:
-    // https://github.com/actions/toolkit/pull/1378
-    // TODO: remove this once the underlying bug is fixed.
-    await cacheProvider.cache.saveCache(config.cachePaths.slice(), config.cacheKey);
+    const normalizedCachePaths = normalizeCachePaths(config.cachePaths);
+    await cacheProvider.cache.saveCache(normalizedCachePaths, config.cacheKey);
   } catch (e) {
     reportError(e);
   }
@@ -84,11 +76,3 @@ async function run() {
 }
 
 run();
-
-async function macOsWorkaround() {
-  try {
-    // Workaround for https://github.com/actions/cache/issues/403
-    // Also see https://github.com/rust-lang/cargo/issues/8603
-    await exec.exec("sudo", ["/usr/sbin/purge"], { silent: true });
-  } catch {}
-}

@@ -3,6 +3,7 @@ import * as exec from "@actions/exec";
 import * as buildjetCache from "@actions/buildjet-cache";
 import * as ghCache from "@actions/cache";
 import fs from "fs";
+import path from "path";
 
 export function reportError(e: any) {
   const { commandFailed } = e;
@@ -61,6 +62,14 @@ export function getCacheProvider(): CacheProvider {
     name: cacheProvider,
     cache: cache,
   };
+}
+
+/**
+ * Normalize cache paths to be relative to process.cwd() for consistency across environments.
+ */
+export function normalizeCachePaths(paths: string[]): string[] {
+  const cwd = process.cwd() + path.sep;
+  return paths.map(p => p.startsWith(cwd) ? path.relative(process.cwd(), p) : p);
 }
 
 export async function exists(path: string) {
